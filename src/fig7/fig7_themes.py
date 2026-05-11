@@ -1,3 +1,5 @@
+### Figure 7
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from pywaffle import Waffle
