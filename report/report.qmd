@@ -1,0 +1,508 @@
+---
+title: "“Taking Stock at FAccT”: Co-Creating a Vision for the Community"
+subtitle: "Report from a Participatory Design Study"
+author: "Version 0.1, `r format(Sys.Date(), '%B %d, %Y')` — Shiran Dudy, Jan Simson, Yanan Long"
+format:
+  PrettyPDF-pdf:
+    keep-tex: true
+---
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE
+)
+
+library(tidyverse)
+library(nicknames)
+library(knitr)
+library(kableExtra)
+
+source("R/data.R")
+```
+
+\renewcommand{\arraystretch}{1.5}
+
+```{r}
+theme_set(
+  theme_light()
+)
+```
+
+```{r}
+nn_register(c(
+  statement_type = "Statement Type",
+  comment_day = "Day",
+  group_id = "Group",
+  first_vote_day = "Day of First Vote",
+  n_votes = "No of Votes",
+  datetime = "Time",
+  n_ptcp = "No of Participants"
+))
+```
+
+```{r}
+vt <- load_votes()
+cm_all <- load_comments()
+pt_raw <- load_participants()
+```
+
+```{r}
+cm <- cm_all %>%
+  filter(total_votes >= 10)
+cm_few <- cm_all %>% 
+  filter(total_votes < 10)
+```
+
+
+```{r}
+# Helper function to highlight a specific comment as a quote box
+highlight_comment <- function(comment_data) {
+  if (nrow(comment_data) != 1) {
+    stop("highlight_comment expects exactly one comment row")
+  }
+  
+  # Create the LaTeX output
+  latex_output <- paste0(
+    "\\begin{quote}\n",
+    "\\Large\\textit{``", comment_data$comment_body, "''}\n",
+    "\\end{quote}\n",
+    "\\hfill --- Anonymous Participant\n\n",
+    "\\hfill \\textbf{Agree:} ", 
+    sprintf("%.1f\\%% (%d)", comment_data$agree_pct, comment_data$agrees),
+    " | \\textbf{Disagree:} ", 
+    sprintf("%.1f\\%% (%d)", comment_data$disagree_pct, comment_data$disagrees),
+    " | \\textbf{Neutral:} ", 
+    sprintf("%.1f\\%% (%d)", comment_data$neutral_pct, comment_data$neutrals)
+  )
+  
+  knitr::asis_output(latex_output)
+}
+
+# Convenience function to highlight a comment by searching for a string
+highlight_comment_by_text <- function(search_string, data = cm_all) {
+  matches <- data |>
+    filter(str_detect(str_to_lower(comment_body), str_to_lower(search_string)))
+  
+  n_matches <- nrow(matches)
+  
+  if (n_matches == 0) {
+    stop(sprintf("No comments found matching '%s'", search_string))
+  } else if (n_matches > 1) {
+    stop(sprintf("Found %d comments matching '%s'. Please be more specific.", n_matches, search_string))
+  }
+  
+  highlight_comment(matches)
+}
+
+# Helper function to create vote breakdown tables
+create_comment_table <- function(data, title_text, n_comments = NULL, sort_by = "agree", ...) {
+  # Create color palettes with 256 steps
+  agree_palette <- colorRampPalette(c("white", "#1a9850"))(256)
+  disagree_palette <- colorRampPalette(c("white", "#d73027"))(256)
+  neutral_palette <- colorRampPalette(c("white", "#969696"))(256)
+  
+  # Determine sorting column
+  sort_col <- case_when(
+    sort_by == "agree" ~ "agree_pct",
+    sort_by == "disagree" ~ "disagree_pct",
+    sort_by == "neutral" ~ "neutral_pct",
+    sort_by == "total_votes" ~ "total_votes",
+    .default = sort_by
+  )
+  
+  # Generate caption
+  n_total <- nrow(data |> filter(total_votes > 0))
+  n_display <- if_else(is.null(n_comments), n_total, min(n_comments, n_total))
+  
+  sort_label <- case_when(
+    sort_by == "agree" ~ "highest agreement",
+    sort_by == "disagree" ~ "highest disagreement",
+    sort_by == "neutral" ~ "most neutral",
+    sort_by == "total_votes" ~ "most votes",
+    sort_by == "consensus_num" ~ "highest consensus",
+    sort_by == "consensus_inv" ~ "lowest consensus"
+  )
+  
+  if (n_display < n_total) {
+    caption_text <- sprintf(
+      "%s showing %d of %d comments, sorted by %s.",
+      title_text, n_display, n_total, sort_label
+    )
+  } else {
+    caption_text <- sprintf(
+      "%s sorted by %s.",
+      title_text, sort_label
+    )
+  }
+  
+  processed_data <- data |>
+    filter(total_votes > 0) |>
+    mutate(
+      agree_pct = (agrees / total_votes) * 100,
+      disagree_pct = (disagrees / total_votes) * 100,
+      neutral_pct = (neutrals / total_votes) * 100,
+      agree_text = sprintf("%.0f%% (%d)", agree_pct, agrees),
+      disagree_text = sprintf("%.0f%% (%d)", disagree_pct, disagrees),
+      neutral_text = sprintf("%.0f%% (%d)", neutral_pct, neutrals)
+    ) |>
+    arrange(desc(.data[[sort_col]]))
+  
+  if (!is.null(n_comments)) {
+    processed_data <- processed_data |> slice_head(n = n_comments)
+  }
+  
+  processed_data |>
+    select(comment_body, total_votes, agree_text, disagree_text, neutral_text) |>
+    kable(
+      format = "latex",
+      booktabs = TRUE,
+      longtable = TRUE,
+      linesep = "",
+      caption = caption_text,
+      col.names = c("Comment", "Total", "Agree", "Disagree", "Neutral"),
+      ...
+    ) |>
+    kable_styling(
+      latex_options = c("hold_position", "repeat_header"),
+      font_size = 9,
+      full_width = FALSE
+    ) |>
+    column_spec(1, width = "8cm") |>
+    column_spec(2) |>
+    column_spec(3, 
+      background = spec_color(
+        processed_data$agree_pct / 100, 
+        palette = agree_palette,
+        scale_from = c(0, 1)
+      )
+    ) |>
+    column_spec(4,
+      background = spec_color(
+        processed_data$disagree_pct / 100,
+        palette = disagree_palette,
+        scale_from = c(0, 1)
+      )
+    ) |>
+    column_spec(5,
+      background = spec_color(
+        processed_data$neutral_pct / 100,
+        palette = neutral_palette,
+        scale_from = c(0, 1)
+      )
+    )
+}
+```
+
+```{=latex}
+\renewcommand*\contentsname{}
+{
+\hypersetup{linkcolor=}
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+
+\newpage
+```
+
+# Executive Summary
+
+**Content:** We structured the conversation to elicit both normative statements (envisioning FAccT's future) and descriptive statements (assessing its current state). Five themes emerged as central to participant discourse: Conference Format & Programming, Inclusivity and Accessibility, Geographic & Cultural Diversity, Industry Engagement, Community & Values.
+
+**Operational and Aspirational:** We identified operational proposals (offering concrete, actionable implementations) and aspirational statements (articulating broader values and principles). An overview of operational statements can be found in Table \ref{tab:tab-top-10-operational} and aspirational statements in Table \ref{tab:tab-top-10-aspirational}. This report focuses primarily on the normative category and this operational-aspirational distinction.
+
+**Areas Requiring Deliberation:** In Table \ref{tab:tab-top-10-low-consensus}, we highlight topics with low consensus, indicating complex issues that warrant further community discussion to unpack underlying tensions and divergent perspectives.
+
+# Context & Motivation
+
+As a relatively young venue, FAccT has emerged as a critical space for activists and scholars to examine AI and machine learning technologies. The conference convenes academics, civil society members, and government representatives from diverse disciplines to explore the broader societal impacts of both deployed and proposed technologies.
+
+As community members deepen their engagement with the field, their values and perspectives evolve. Recent years have presented particular challenges as communities attempt to critically interrogate the uncritical adoption of AI across labor, education, art, and other domains. Community members may benefit from collectively understanding and envisioning FAccT's role in countering AI hype. The venue is uniquely positioned for this work: by drawing interdisciplinary participants from academia, government, civil society, and nonprofit sectors, FAccT can potentially achieve greater societal impact than typical academic conferences.
+
+FAccT values democracy as a community, with participation serving as one mechanism for realizing this commitment. Therefore, rather than only engaging in academic research about co-design processes external to our community, we sought to "walk the talk" by applying participatory methods internally. We employed a participatory design approach to surface how members perceive FAccT, its current role, and their aspirations for its future. This methodology served dual purposes: eliciting community perspectives while creating space for members to collectively reflect on and shape the venue's evolving vision and values.
+
+While conference organizers regularly solicit feedback through town halls and post-conference surveys—standard practices in academic venues—these methods have limitations. They typically capture individual opinions rather than facilitating collective sense-making, and may not provide sufficient time or structure for bottom-up assessment of where community members stand on crucial issues. Participatory design (PD) offers a complementary approach that enables deeper, more structured collective deliberation. Unlike traditional surveys, this deliberative process allowed participants to respond to each other's perspectives and identify areas of consensus and divergence.
+
+
+# Methodology
+
+The engagement process followed a two-phase structure. We first held an in-person CRAFT session on June 26, 2025, where participants generated seed statements in three groups to frame deliberation, each receiving one of the following prompts:“FAccT is/is not,” “FAccT should/should not,” and “FAccT is (not) doing well in.” This session produced a set of initial seed statements to be voted on. CRAFT participants were also the first to take part in the subsequent online voting. 
+
+We used pol.is for voting, a low-barrier deliberation platform where participants vote on statements (agree/disagree/pass) before submitting new ones. All submitted statements were unmoderated and immediately available for voting. We asked contributors to provide an email address for follow-up, but used no tokens or identifiers to distinguish stakeholder groups during participation. After the CRAFT session and platform were launched, we recruited additional participants via announcements on the FAccT-discuss listserv and the FAccT Slack channel (two emails and multiple Slack posts). The online participation period ran through July 31, 2025, resulting in 128 participants who cast 4,531 votes across 61 statements (including both seed and participant-submitted statements).
+ 
+Participation was fully anonymized and deidentified, enabling broad access without registration requirements. While invitations were distributed through the FAccT Slack channel and FAccT-discuss listserv, the open model limits our ability to assess how representative participants are of the broader FAccT community. For context, the FAccT Slack channel has 1,966 members; 128 participants corresponds to an approximate participation rate of 6.5% of that subset.
+
+# Results and Findings
+
+In this section we will share our main findings. Our focus is on the statements and the voting both of which inform where participants are at around their perception of the FAccT community and their aspirations for its future. 
+
+## Theme Analysis
+
+In this section, we present the themes emerging from the statements themselves 
+\footnote{This analysis focuses on statement content, not voting patterns}
+. Identifying these themes reveals which topics are central to participants' concerns, while the relative proportions may indicate the collective importance participants attribute to each theme.
+
+```{r}
+highlight_comment_by_text("Financial support to attendees is a paramount expression of our values")
+```
+
+@fig-facct-themes-split presents the theme frequency analysis. \footnote{The themes definition, as well as the statements along with their corresponding labels are in the appendix.} To conduct this analysis, three annotators independently labeled each statement with multiple theme labels. The final labels assigned to each statement were determined by consensus among the annotators. For example, nine statements addressed Inclusivity & Accessibility, while 15 addressed Conference Format & Programming. To illustrate the multi-label approach: “Financial support to attendees is a paramount expression of our values.” was labeled both Financial & Economic Access and Community & Values describing community values contextualized around economic access. In contrast, “FAccT is doing well in sticking to their values” received on the Community & Values label. To summarize, we observe that the top 5 themes participants were most concerned with are Conference Format & Programming (15 times), Inclusivity and Accessibility (14 times), Geographic & Cultural Diversity (13 times), Industry Engagement (9 times), Community & Values (8 times). 
+
+![Statements distribution across 11 identified themes.](figures/facct_themes_split.pdf){#fig-facct-themes-split}
+
+## Normative vs. Descriptive Statement analysis
+
+We analyzed statement types and classified them into three categories: Normative, Descriptive, and Other. Normative statements express participants' vision for FAccT and its future goals, while Descriptive statements assess its current state and role, Other was neither of those definitions.
+
+This distribution reflects our deliberate design choices. During the initial CRAFT phase, we prompted participants to create the seed statements with specific sentence starters—"FAccT is," "FAccT is not," "FAccT should," and "FAccT should not"—to structure the conversation around both evaluative and prescriptive perspectives. Unsurprisingly, most statements submitted in subsequent phases followed these patterns, with some exceptions. @fig-statement-tree presents the distribution of statement types and their frequencies.
+
+![Classification of statements as normative and descriptive.](figures/statement_tree.pdf){#fig-statement-tree}
+
+Overall, there were 61 statements, with 33, and 23 Normative and Descriptive types, with a majority of statements of “FAccT should”, and “FAccT is” having 21 and 13 statements respectively. (footnote: Normative Other and Descriptive Other represent statements expressing future-oriented or current-state perspectives, respectively, but using alternative phrasing beyond the provided prompts (e.g., "must," "could," "are," "has been"))
+
+```{r}
+highlight_comment_by_text("meet future collaborators")
+```
+
+## Operational and Aspirational
+
+Beyond the normative-descriptive classification above, we distinguish between operational and aspirational types. Operational statements propose specific, implementable actions—for instance, "FAccT should also run local meetups (EU/UK/Asia-Pacific) in case if attendees fail to attend due to visa reasons" identifies a concrete structural change. Aspirational statements, by contrast, articulate values or principles without prescribing specific mechanisms—such as "FAccT should be open and welcoming community." This analysis reveals not only participants' priorities but also the degree of consensus around implementation details versus broader values. Many of the statements make specific suggestions with a clear direction of how they may be implemented. We double-coded these labels using a human and automated coder with separate labelling by a third human for any disagreements. We identified a total of n = 27 statements as operational.
+
+### Defining Consensus
+
+We opted to examine statements where there is high consensus in how the community feels about a statement (as opposed to high disagreement / an even split on agreement / disagreement / neutral feelings).
+
+We define consensus ($C$) as the difference between the highest and lowest percentage among agree ($p_{agree}$), disagree ($p_{disagree}$), and neutral ($p_{neutral}$) votes:
+
+$$
+C = \max(p_{agree}, p_{disagree}, p_{neutral}) - \min(p_{agree}, p_{disagree}, p_{neutral})
+$$
+
+A higher consensus score indicates that participants strongly aligned on one particular response (whether agree, disagree, or neutral), while a lower consensus score suggests more divided opinions across the three options.
+
+We only examined statements with at least 10 votes to avoid extremes. This affected only two statements, with one and three votes, respectively. The two statements are included in the appendix.
+
+In the following table we list the top 10 operational statements by consensus, where more immediate action can be taken to consideration.
+
+```{r}
+cm |>
+  filter(is_actionable == TRUE) |>
+  create_comment_table(
+    "High-consensus operational statements",
+    n_comments = 10,
+    sort_by = "consensus_num",
+    label = "tab-top-10-operational"
+  )
+```
+
+As an example, one of the operational statements above is "FAccT should support more cross-disciplinary meetings at the conference, not just in the socials." This statement's support among participants could justify either emphasizing existing cross-disciplinary spaces or developing new mechanisms to facilitate such interactions.
+
+In the table below we list the top 10 *aspirational* statements to consider. This may be more of interest to the steering committee in shaping the long term vision of the conference and community. As these aspirations are less concrete in nature, there may be multiple forms through which they can be manifested. 
+
+```{r}
+cm |>
+  filter(is_actionable == FALSE) |>
+  create_comment_table(
+    "High-consensus aspirational statements",
+    n_comments = 10,
+    sort_by = "consensus_num",
+    label = "tab-top-10-aspirational"
+  )
+```
+
+Aspirational statements like "FAccT should not be exclusionary" and "FAccT should be open and welcoming community" lack specificity about implementation. Community members would benefit from knowing what measures achieve these goals—either by making existing efforts more visible or by implementing new mechanisms like those suggested in operational statements (e.g., prioritizing non-US/Europe perspectives and scrutinizing corporate influence).
+
+### Low Consensus Statements
+
+Aside from high-consensus statements, we can also look at the low end of the metric to examine low consensus statements, i.e. statements where the community is split on how to react to them.
+
+```{r}
+cm |>
+  create_comment_table(
+    "Low-consensus statements (most divided opinions)",
+    n_comments = 10,
+    sort_by = "consensus_inv",
+    label = "tab-top-10-low-consensus"
+  )
+```
+
+The following areas emerge as topics that may require future deliberation to discuss within the community.
+
+**Non-academics:** Participants diverged on whether FAccT is currently inclusive to non-academics and whether it successfully invites them into the conversation.
+
+**Corporate funding:** Strong divisions emerged around corporate sponsorship. Participants disagreed on whether FAccT should accept big corporate sponsors, whether it should take minimum required industry funding to operate, and whether it should accept corporate money at all—with statements on these closely related questions yielding similarly divided responses.
+
+**(Inter-)disciplinary focus:** Participants disagreed on whether FAccT is overly focused on computer science.
+
+**PhD student fees:** Opinions were divided on whether the conference should be free for PhD students.
+
+
+# Appendix
+
+## Detailed Methodology
+
+### Voting Process
+
+The engagement process followed a two-phase structure. First, we conducted an in-person CRAFT session on June 26, 2025, during which participants generated seed statements to frame the deliberation. Participants were instructed to formulate statements using the following prompts: "FAccT is," "FAccT is not," "FAccT should," "FAccT should not," "FAccT is doing well in," and "FAccT is not doing well in." This session yielded seed statements, which our team subsequently uploaded to the [Pol.is](http://pol.is) platform. CRAFT session participants were the first to engage with the online voting process.
+
+### Platform
+
+[Pol.is](http://pol.is) is a deliberative democracy platform that enables scalable online participation with minimal barriers to entry—participants need only access the link to contribute. The platform interface instructs participants to first read and vote on existing statements (agree/disagree/pass) before submitting their own statements. All submitted statements were unmoderated and became immediately available for voting. We requested that participants provide an email address when submitting new statements to enable follow-up communication. No tokens or identification mechanisms were used to distinguish different stakeholder groups during participation, though demographic information was collected separately (see Participant Demographics section).
+
+### Recruitment
+
+Following the CRAFT session, we recruited additional participants through announcements on the FAccT-discuss listserv and FAccT Slack channels. We sent two emails for recruitment, and two slack general room posts.
+
+#### Timeline and Participation Metrics
+
+The CRAFT session and [Pol.is](http://pol.is) platform launch occurred on June 26, 2025. The online participation period remained open until July 31, 2025. During this time, 128 people participated in the process, casting a total of 4,531 votes across 61 statements (including both seed statements and participant-submitted statements).
+
+#### Participant Demographics
+
+The voting method employed complete anonymization and deidentification of all participants. This approach offered the advantage of barrier-free participation, allowing anyone to join and vote without registration requirements. To reach potential participants, we disseminated invitations exclusively through the FAccT Slack channel and the FAccT-discuss listserv. However, this open participation model presents a limitation: we cannot assess the representativeness of the sample relative to the broader FAccT community. The FAccT Slack channel currently has 1,966 members. With 128 participants in our process, this represents a participation rate of approximately 6.5% of this subset of the community.
+
+### Themes
+
+```{r}
+load_themes() |>
+  knitr::kable(
+    label = "tab-themes",
+    caption = "List of themes and descriptions used in the theme analysis."
+  )
+```
+
+## Pol.is Report
+
+The platform used for participatory input, *pol.is*, also generates its own report summarizing the voting results.
+
+The report can be downloaded at <https://pol.is/report/r8zcsaxppvvhrbnvkceth>.
+
+The raw pol.is data our report is based on are available as well:
+
+- [Summary](https://pol.is/api/v3/reportExport/r8zcsaxppvvhrbnvkceth/summary.csv)
+- [Comments](https://pol.is/api/v3/reportExport/r8zcsaxppvvhrbnvkceth/comments.csv)
+- [Votes](https://pol.is/api/v3/reportExport/r8zcsaxppvvhrbnvkceth/votes.csv)
+- [Participant Votes](https://pol.is/api/v3/reportExport/r8zcsaxppvvhrbnvkceth/participant-votes.csv)
+- [Comment Groups](https://pol.is/api/v3/reportExport/r8zcsaxppvvhrbnvkceth/comment-groups.csv)
+
+## All Statements: Operational and Aspirational
+
+In this section we list all statements identified as either operational or aspirational.
+
+```{r}
+cm |>
+  filter(is_actionable == TRUE) |>
+  arrange(desc(consensus_num)) |>
+  create_comment_table(
+    "All statements identified as operational.",
+    sort_by = "consensus_num"
+  )
+```
+
+```{r}
+cm |>
+filter(is_actionable == FALSE) |>
+  arrange(consensus_num) |>
+  create_comment_table(
+    "All statements identified as aspirational.",
+    sort_by = "consensus_num"
+  )
+```
+
+## All Statements by Prompt
+
+Participants created seed statements based on two of six prompts (matched into a positive and negative variant; i.e. FAccT is / FAccT is not). These prompts also heavily influenced phrasing in statements that were submitted beyond just seed statements. The chart below shows the distribution of these statement types, giving an overview of the popularity of different prompts or initial phrases used in statements.
+
+```{r}
+#| fig-height: 2.5
+cm |> 
+  count(statement_type) |> 
+  ggplot() +
+  aes(
+    y = statement_type |>
+      fct_rev(),
+    x = n,
+    fill = statement_type
+  ) +
+  geom_col() +
+  theme(legend.position = "none") +
+  labs_nn() +
+  peRsian::scale_fill_persian("hamburg")
+```
+
+The following sections break down all comments by the six initial prompts we used in the CRAFT session.
+
+### FAccT Is Doing Well
+
+```{r}
+cm |>
+  filter(statement_type == "facct is doing well in") |>
+  create_comment_table("FAccT is doing well in...")
+```
+
+### FAccT Is Not Doing Well
+
+```{r}
+cm |>
+  filter(statement_type == "facct is not doing well in") |>
+  create_comment_table("FAccT is not doing well in...")
+```
+
+### FAccT Should
+
+These statements propose specific actions, policies, or directions for the future of FAccT.
+
+```{r}
+cm |>
+  filter(statement_type == "facct should") |>
+  create_comment_table("FAccT should...")
+```
+
+### FAccT Should Not
+
+```{r}
+cm |>
+  filter(statement_type == "facct should not") |>
+  create_comment_table("FAccT should not...")
+```
+
+### FAccT Is
+
+```{r}
+cm |>
+  filter(statement_type == "facct is") |>
+  create_comment_table("FAccT is...")
+```
+
+### FAccT Is Not
+
+```{r}
+cm |>
+  filter(statement_type == "facct is not") |>
+  create_comment_table("FAccT is not...")
+```
+
+### Other Comments
+
+Statements that did not fit into the specific categories above are listed here.
+
+```{r}
+cm |>
+  filter(statement_type == "other") |>
+  create_comment_table("Other comments")
+```
+
+## Excluded Comments
+
+These comments received fewer than 10 votes indicating that they were added towards the end of the voting period (comments are presented in random order and not skippable).
+
+They are excluded from the above analyses due to their higher tendency towards more extreme ratios, e.g. 100% agreement if there is just one vote.
+
+```{r}
+cm_few %>% 
+  create_comment_table(
+    "Comments with less than 10 votes",
+    sort_by = "total_votes"
+  )
+```
