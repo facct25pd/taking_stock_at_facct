@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 
-plt.rcParams["font.family"] = "serif" 
+plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.serif"] = ["Times New Roman"]
 
 # Load the data
@@ -51,7 +51,7 @@ cmap = plt.cm.viridis
 y_positions = range(len(filtered_participants_sorted))
 for idx, (_, row) in enumerate(filtered_participants_sorted.iterrows()):
     color = 'olivedrab'#(norm(row['duration_minutes']))
-    
+
     # Draw the horizontal line from first to last vote
     ax.hlines(
         y=idx,
@@ -61,7 +61,7 @@ for idx, (_, row) in enumerate(filtered_participants_sorted.iterrows()):
         linewidths=4,
         alpha=0.8
     )
-    
+
     # Add markers for start and end points
     ax.scatter([row['first_vote']], [idx], color=color, s=80, zorder=5, edgecolors='white', linewidths=1)
     ax.scatter([row['last_vote']], [idx], color=color, s=80, zorder=5, edgecolors='white', linewidths=1, marker='s')

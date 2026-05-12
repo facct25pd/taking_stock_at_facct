@@ -19,14 +19,14 @@ def interpret_votes(row):
     agrees = row['total-agrees']
     disagrees = row['total-disagrees']
     passes = row['total-passes']
-    
+
     if pd.isna(total) or total == 0:
         return 'No votes recorded'
-    
+
     agree_pct = (agrees / total) * 100
     disagree_pct = (disagrees / total) * 100
     pass_pct = (passes / total) * 100
-    
+
     # Determine consensus level
     if agree_pct >= 75:
         consensus = 'Strong consensus agrees'
@@ -40,7 +40,7 @@ def interpret_votes(row):
         consensus = 'High uncertainty'
     else:
         consensus = 'Mixed opinions'
-    
+
     # Determine engagement level
     if total >= 80:
         engagement = 'high engagement'
@@ -48,7 +48,7 @@ def interpret_votes(row):
         engagement = 'moderate engagement'
     else:
         engagement = 'low engagement'
-    
+
     return f"{consensus} ({agree_pct:.0f}% agree, {disagree_pct:.0f}% disagree, {pass_pct:.0f}% pass) - {engagement}"
 
 # Add interpretation column
@@ -75,22 +75,22 @@ for theme in sorted(all_themes):
         lambda x: theme in str(x) if pd.notna(x) else False
     )
     theme_df = merged_df[theme_mask].copy()
-    
+
     # Select and order columns
     output_df = theme_df[[
-        'comment-id', 
-        'comment', 
-        'total-votes', 
-        'total-agrees', 
-        'total-disagrees', 
+        'comment-id',
+        'comment',
+        'total-votes',
+        'total-agrees',
+        'total-disagrees',
         'total-passes',
         'interpretation'
     ]]
-    
+
     # Create safe filename
     safe_filename = theme.replace(' ', '_').replace('&', 'and').replace('/', '_')
     filepath = os.path.join(output_dir, f"{safe_filename}.csv")
-    
+
     # Save to CSV
     output_df.to_csv(filepath, index=False)
     print(f"\nCreated: {safe_filename}.csv ({len(output_df)} comments)")

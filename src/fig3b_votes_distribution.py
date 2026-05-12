@@ -3,7 +3,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-plt.rcParams["font.family"] = "serif" 
+plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.serif"] = ["Times New Roman"]
 
 # Load data
@@ -31,7 +31,7 @@ percentages = [s/total*100 for s in sizes]
 fig, ax = plt.subplots(figsize=(8, 8))
 
 # Create donut chart
-wedges, texts, autotexts = ax.pie(sizes, 
+wedges, texts, autotexts = ax.pie(sizes,
                                    labels=labels,
                                    colors=colors,
                                    explode=explode,

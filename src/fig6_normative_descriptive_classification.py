@@ -14,22 +14,22 @@ df = pd.read_csv(path2statementclass+'normative_descriptive_classification.csv')
 def classify_statement_subtype(row):
     """
     Classify statements into detailed subtypes based on their prefix and type
-    
+
     Args:
         row: DataFrame row with 'comment' and 'Statement_Type' columns
-    
+
     Returns:
         Statement subtype string
     """
     comment = row['comment']
     statement_type = row['Statement_Type']
     c_id = row['comment-id']
-    
+
     if pd.isna(comment):
         return 'Unknown'
-    
+
     comment_lower = comment.lower().strip()
-    
+
     # Only classify if we know it's Normative
     if statement_type == 'Normative':
         if 'should not' in comment_lower or "shouldn't" in comment_lower:
@@ -38,7 +38,7 @@ def classify_statement_subtype(row):
             return 'FAccT should'
         else:
             return 'Other normative'
-    
+
     # Only classify if we know it's Descriptive
     elif statement_type == 'Descriptive':
         if 'is not' in comment_lower or "isn't" in comment_lower:
@@ -47,7 +47,7 @@ def classify_statement_subtype(row):
             return 'FAccT is'
         else:
             return 'Other descriptive'
-    
+
     else:
         return 'Other'
 
@@ -89,7 +89,7 @@ def get_color_by_intensity(base_color, value, max_value, min_intensity=0.3):
     """
     Adjust color intensity based on relative value.
     Higher values get more saturated colors.
-    
+
     Args:
         base_color: hex color string
         value: count for this category
@@ -98,17 +98,17 @@ def get_color_by_intensity(base_color, value, max_value, min_intensity=0.3):
     """
     if max_value == 0:
         return base_color
-    
+
     # Calculate intensity (0 to 1)
     intensity = min_intensity + (1 - min_intensity) * (value / max_value)
-    
+
     # Convert hex to RGB
     rgb = mcolors.hex2color(base_color)
-    
+
     # Adjust saturation/lightness
     # Mix with white to reduce intensity
     adjusted_rgb = tuple(intensity * c + (1 - intensity) * 1.0 for c in rgb)
-    
+
     return mcolors.rgb2hex(adjusted_rgb)
 
 # Calculate max values for each group (for color scaling)
@@ -151,29 +151,29 @@ def draw_node(ax, pos, text, count=None, box_color='lightblue', text_size=10, bo
             label = f"{text}"
     else:
         label = text
-    
+
     bbox = FancyBboxPatch((pos[0]-box_width/2, pos[1]-0.5), box_width, 1.2,
-                           boxstyle="round,pad=0.05", 
+                           boxstyle="round,pad=0.05",
                            edgecolor='black', facecolor=box_color,
                            linewidth=2, zorder=2)  # Add zorder=2 for boxes
     ax.add_patch(bbox)
-    ax.text(pos[0], pos[1], label, ha='center', va='center', 
+    ax.text(pos[0], pos[1], label, ha='center', va='center',
             fontsize=text_size, fontweight='bold', zorder=3)  # Add zorder=3 for text
 
 # Helper function to draw edge with count
 def draw_edge(ax, pos1, pos2, count, offset_x=0, offset_y=0):
     # Draw line with zorder=1 (behind boxes)
-    ax.plot([pos1[0], pos2[0]], [pos1[1]-0.25, pos2[1]+0.25], 
+    ax.plot([pos1[0], pos2[0]], [pos1[1]-0.25, pos2[1]+0.25],
             'k-', linewidth=2, alpha=0.6, zorder=1)
-    
+
     # Calculate midpoint for label
     mid_x = (pos1[0] + pos2[0]) / 2 + offset_x
     mid_y = (pos1[1] + pos2[1]) / 2 + offset_y
-    
+
     # Draw count label on edge
-    ax.text(mid_x, mid_y, f'n={count}', 
+    ax.text(mid_x, mid_y, f'n={count}',
             ha='center', va='center',
-            bbox=dict(boxstyle='round,pad=0.3', facecolor='white', 
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
                      edgecolor='gray', alpha=0.8),
             fontsize=16, fontweight='bold', zorder=2)
 
@@ -186,7 +186,7 @@ draw_edge(ax, positions['root'], positions['other'], other_total, offset_x=0)
 # Draw edges from normative to its subcategories
 for sub in normative_subs:
     sub_count = counts[
-        (counts['Statement_Type'] == 'Normative') & 
+        (counts['Statement_Type'] == 'Normative') &
         (counts['Statement_Subtype'] == sub)
     ]['count'].sum()
     if sub_count > 0:
@@ -195,7 +195,7 @@ for sub in normative_subs:
 # Draw edges from descriptive to its subcategories
 for sub in descriptive_subs:
     sub_count = counts[
-        (counts['Statement_Type'] == 'Descriptive') & 
+        (counts['Statement_Type'] == 'Descriptive') &
         (counts['Statement_Subtype'] == sub)
     ]['count'].sum()
     if sub_count > 0:
@@ -203,27 +203,27 @@ for sub in descriptive_subs:
 
 # Draw the 'Other' category node
 if other_total > 0:
-    draw_node(ax, positions['other'], 'Other', other_total, 
+    draw_node(ax, positions['other'], 'Other', other_total,
               box_color=other_base, text_size=16, box_width=1.3)
 
 # SECOND: Draw all nodes (in the foreground, zorder=2-3)
 # Draw root node
-draw_node(ax, positions['root'], 'All Statements', total_statements, 
+draw_node(ax, positions['root'], 'All Statements', total_statements,
           box_color=root_color, text_size=16, box_width=2)
 
 # Draw level 1 nodes (Normative/Descriptive)
-draw_node(ax, positions['normative'], 'Normative', normative_total, 
+draw_node(ax, positions['normative'], 'Normative', normative_total,
           box_color=normative_base, text_size=16, box_width=1.7)
-draw_node(ax, positions['descriptive'], 'Descriptive', descriptive_total, 
+draw_node(ax, positions['descriptive'], 'Descriptive', descriptive_total,
           box_color=descriptive_base, text_size=16, box_width=1.7)
 
 # Draw normative subcategories (nodes only, edges later)
 for sub in normative_subs:
     sub_count = counts[
-        (counts['Statement_Type'] == 'Normative') & 
+        (counts['Statement_Type'] == 'Normative') &
         (counts['Statement_Subtype'] == sub)
     ]['count'].sum()
-    
+
     if sub_count > 0:
         # Adjust box width for longer text
         color = get_color_by_intensity(normative_base, sub_count, normative_max)
@@ -233,16 +233,16 @@ for sub in normative_subs:
             box_w = 1.7
         else:
             box_w = 2.2
-        draw_node(ax, positions[sub], sub, sub_count, box_color=color, 
+        draw_node(ax, positions[sub], sub, sub_count, box_color=color,
                  text_size=16, box_width=box_w)
 
 # Draw descriptive subcategories (nodes only, edges later)
 for sub in descriptive_subs:
     sub_count = counts[
-        (counts['Statement_Type'] == 'Descriptive') & 
+        (counts['Statement_Type'] == 'Descriptive') &
         (counts['Statement_Subtype'] == sub)
     ]['count'].sum()
-    
+
     if sub_count > 0:
         color = get_color_by_intensity(descriptive_base, sub_count, descriptive_max)
         # Adjust box width for longer text
@@ -252,7 +252,7 @@ for sub in descriptive_subs:
             box_w = 1.2
         else:
             box_w = 2.2
-        draw_node(ax, positions[sub], sub, sub_count, box_color=color, 
+        draw_node(ax, positions[sub], sub, sub_count, box_color=color,
                  text_size=16, box_width=box_w)
 
 plt.tight_layout()

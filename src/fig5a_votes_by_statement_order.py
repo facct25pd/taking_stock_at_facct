@@ -31,7 +31,7 @@ comments_df['datetime'] = pd.to_datetime(comments_df['datetime'].apply(parse_dat
 
 # Merge to get datetime and total-votes together
 merged_df = comments_df[['comment-id', 'datetime']].merge(
-    commentgroups_df[['comment-id', 'total-votes']], 
+    commentgroups_df[['comment-id', 'total-votes']],
     on='comment-id'
 )
 
@@ -43,7 +43,7 @@ merged_df['submission_order'] = range(1, len(merged_df) + 1)
 fig, ax = plt.subplots(figsize=(14, 9))
 
 # Plot as bar chart
-ax.bar(merged_df['submission_order'], merged_df['total-votes'], 
+ax.bar(merged_df['submission_order'], merged_df['total-votes'],
        color='#FF7F00', alpha=0.5)
 
 below_90 = merged_df[merged_df['total-votes'] < 90]
@@ -53,12 +53,12 @@ date_str = first_below_90['datetime'].strftime('%b %d, %Y')
 
 # Add average line
 avg_votes = merged_df['total-votes'].mean()
-ax.axhline(y=avg_votes, color='teal', linestyle='--', linewidth=2, 
+ax.axhline(y=avg_votes, color='teal', linestyle='--', linewidth=2,
            label=f'Average: {avg_votes:.1f} votes')
 
 # Add median line
 med_votes = merged_df['total-votes'].median()
-ax.axhline(y=med_votes, color='darkmagenta', linestyle='--', linewidth=2, 
+ax.axhline(y=med_votes, color='darkmagenta', linestyle='--', linewidth=2,
            label=f'Median: {med_votes:.1f} votes')
 
 # Labels

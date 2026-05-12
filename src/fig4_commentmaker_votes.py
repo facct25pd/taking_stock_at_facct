@@ -3,7 +3,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-plt.rcParams["font.family"] = "serif" 
+plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.serif"] = ["Times New Roman"]
 
 # Load data
@@ -38,7 +38,7 @@ bars = ax.bar(range(len(participants)), n_comments, alpha=0.6, label='n-comments
 
 # Add n-comments values above each bar
 for i, (bar, value) in enumerate(zip(bars, n_comments)):
-    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5, 
+    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
             str(value), ha='center', va='bottom', fontsize=10, fontweight='bold')
 # Create scatter plot for n-votes on the same axis
 ax.scatter(range(len(participants)), n_votes, color=colors[1], s=100, label='n-votes', zorder=3)
