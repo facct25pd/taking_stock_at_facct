@@ -1,5 +1,9 @@
+DATA_DIR <- "../data"
+POLIS_DATA_DIR <- paste0(DATA_DIR, "/polis")
+LABELS_DATA_DIR <- paste0(DATA_DIR, "/labels")
+
 load_votes <- function() {
-  vt <- read_csv("../data/votes.csv") |>
+  vt <- read_csv(paste0(POLIS_DATA_DIR, "/votes.csv")) |>
     janitor::clean_names() |>
     rename(
       participant = voter_id
@@ -13,7 +17,7 @@ load_votes <- function() {
 }
 
 load_themes <- function() {
-  themes <- read_csv("../data/themes.csv")
+  themes <- read_csv(paste0(LABELS_DATA_DIR, "/themes.csv"))
 
   return(themes)
 }
@@ -46,14 +50,14 @@ load_comments <- function(
 
   # Download latest version from:
   # https://docs.google.com/spreadsheets/d/1CGdvpwiBB6PJXdEbRKLdgWhW1eU0i-FVhoJ7QuYSqzY/gviz/tq?tqx=out:csv&sheet=Sheet1
-  comments_labels <- read_csv("../data/comments_labels.csv") |>
+  comments_labels <- read_csv(paste0(POLIS_DATA_DIR, "/comments_labels.csv")) |>
     janitor::clean_names() |>
     select(comment_id, all_of(label_columns)) |>
     mutate(
       is_actionable = parse_yes_no(is_actionable)
     )
 
-  cm <- read_csv("../data/comments.csv") |>
+  cm <- read_csv(paste0(POLIS_DATA_DIR, "/comments.csv")) |>
     janitor::clean_names() |>
     left_join(comments_labels, by = "comment_id") |>
     mutate(
@@ -112,7 +116,7 @@ load_comments <- function(
 }
 
 load_participants <- function() {
-  pt_raw <- read_csv("../data/participant-votes.csv") |>
+  pt_raw <- read_csv(paste0(POLIS_DATA_DIR, "/participant-votes.csv")) |>
     janitor::clean_names() |>
     mutate(
       group_id = as.factor(group_id)
