@@ -1,6 +1,6 @@
 [[Paper]](https://doi.org/10.1145/3805689.3812270)   [[ArXiv]](https://arxiv.org/abs/2604.16224)   [[Pol.is Report / Data]](https://pol.is/report/r8zcsaxppvvhrbnvkceth)
 
-# Taking Stock at FAccT
+# Taking Stock at FAccT  <img src="report/_extensions/nrennie/PrettyPDF/logo.png" width="120" align="right" />
 
 Codebase for the ACM FAccT 2026 paper *"Taking Stock at FAccT": Using Participatory Design to Co-Create a Vision for the Fairness, Accountability and Transparency Community*.
 
