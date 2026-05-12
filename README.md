@@ -6,7 +6,7 @@ Codebase for the ACM FAccT 2026 paper *"Taking Stock at FAccT": Using Participat
 
 ## Analyses
 
-The analyses / code to generate figures in the paper can be found under `src/`.
+The analyses / code to generate figures in the paper can be found under `src/`. The required csv files to generate the figures can be dowloaded directly from the polis website displaying the results (go to top of this page), as well as in the `data/labels/` directory. To generate Figure 7 the raw_themes_classification.csv turns into themes_classification.csv, and then the figure can be produced.
 
 ### Setup
 
