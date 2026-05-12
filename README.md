@@ -26,6 +26,13 @@ The source files for the final report which we plan to share with the community 
 
 ### Setup
 
+The report was created using R version `4.4.1`. Dependencies are managed via `renv`. To set up the R environment, first install R, then run the following commands in the `report/` directory, which will install the correct versions of all required packages.
+
+```R
+install.packages("renv")
+renv::restore()
+```
+
 The report is written as a Quarto document and requires Quarto to render. You can find installation instructions for Quarto [here](https://quarto.org/docs/get-started/).
 
 ### Running / Rendering the Report

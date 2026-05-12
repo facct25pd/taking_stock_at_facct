@@ -219,3 +219,4 @@ __marimo__/
 
 # Ignore generated figures etc.
 out/
+.Rproj.user
