@@ -1,11 +1,11 @@
 import pandas as pd
 import os
 
-from paths import INTERIM_DIR, LABELS_DATA_DIR, OUT_DIR
+from paths import INTERIM_DIR, OUT_DIR, POLIS_DATA_DIR
 
 # Read both files
 majority_df = pd.read_csv(INTERIM_DIR / "theme_classification.csv")
-votes_df = pd.read_csv(LABELS_DATA_DIR / "comment-groups.csv")
+votes_df = pd.read_csv(POLIS_DATA_DIR / "comment-groups.csv")
 
 # Merge on comment-id
 merged_df = pd.merge(

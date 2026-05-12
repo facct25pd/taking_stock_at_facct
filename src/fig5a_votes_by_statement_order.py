@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-from paths import POLIS_DATA_DIR, FIGURES_DIR, LABELS_DATA_DIR
+from paths import POLIS_DATA_DIR, FIGURES_DIR
 
 
 def parse_datetime(datetime_str):
@@ -18,7 +18,7 @@ def parse_datetime(datetime_str):
 
 # Read both CSV files
 comments_df = pd.read_csv(POLIS_DATA_DIR / "comments.csv")
-commentgroups_df = pd.read_csv(LABELS_DATA_DIR / "comment-groups.csv")
+commentgroups_df = pd.read_csv(POLIS_DATA_DIR / "comment-groups.csv")
 
 # rm filtered comments
 comments_df = comments_df[comments_df["comment-id"] != 45]

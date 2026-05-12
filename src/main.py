@@ -7,12 +7,12 @@ SCRIPTS = [
     "fig3a_votes_per_participant.py",
     "fig3b_votes_distribution.py",
     "fig4_commentmaker_votes.py",
-    # TODO (missing comment-groups.csv): "fig5a_votes_by_statement_order.py",
+    "fig5a_votes_by_statement_order.py",
     "fig5b_participation_duration.py",
     "fig6_normative_descriptive_classification.py",
     "fig7/create_final_theme_classification.py",
     "fig7/fig7_themes.py",
-    # TODO (missing comment-groups.csv): "section4.3/votes_analysis_by_theme.py",
+    "section4.3/votes_analysis_by_theme.py",
 ]
 
 
