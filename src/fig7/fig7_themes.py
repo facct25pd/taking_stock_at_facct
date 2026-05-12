@@ -5,10 +5,11 @@ import matplotlib.pyplot as plt
 from collections import Counter
 import seaborn as sns
 
+from paths import FIGURES_DIR, INTERIM_DIR
 
-# Read the Majority column from the Excel file
-path2themes = "TBD"
-df = pd.read_csv(path2themes + "theme_classification.csv")
+
+# Read the Majority column
+df = pd.read_csv(INTERIM_DIR / "theme_classification.csv")
 
 # Extract non-empty Majority values as raw_data
 raw_data = df["Majority"].dropna().tolist()
@@ -98,5 +99,4 @@ for idx, (theme, count) in enumerate(sorted_themes[:total_plots]):  # Limit to 1
 
 plt.tight_layout()
 
-path2save = "TBD"
-plt.savefig(path2save + "facct_themes.pdf", bbox_inches="tight")
+plt.savefig(FIGURES_DIR / "facct_themes.pdf", bbox_inches="tight")

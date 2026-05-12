@@ -3,12 +3,13 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from paths import POLIS_DATA_DIR, FIGURES_DIR
+
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.serif"] = ["Times New Roman"]
 
 # Load data
-path2votes = "TBD"
-votes = pd.read_csv(path2votes + "votes.csv")
+votes = pd.read_csv(POLIS_DATA_DIR / "votes.csv")
 
 # rm filtered comments
 votes = votes[votes["comment-id"] != 45]
@@ -61,8 +62,7 @@ ax.axis("equal")
 plt.tight_layout()
 
 # Save
-path2save = "TBD"
-plt.savefig(path2save + "vote_distribution_donut.pdf", bbox_inches="tight")
+plt.savefig(FIGURES_DIR / "vote_distribution_donut.pdf", bbox_inches="tight")
 print("Plot saved successfully!")
 
 # Print summary

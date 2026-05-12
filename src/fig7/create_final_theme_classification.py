@@ -1,8 +1,9 @@
 import pandas as pd
 from collections import Counter
 
-pathrawclass = "TBD"
-df = pd.read_csv(pathrawclass + "raw_theme_classification.csv")
+from paths import INTERIM_DIR, LABELS_DATA_DIR
+
+df = pd.read_csv(LABELS_DATA_DIR / "raw_theme_classification.csv")
 
 annotator_cols = [
     "Opus 4.5",
@@ -45,4 +46,4 @@ def get_majority_labels(row):
 
 
 df["Majority"] = df.apply(get_majority_labels, axis=1)
-df.to_csv(pathrawclass + "theme_classification.csv", index=False)
+df.to_csv(INTERIM_DIR / "theme_classification.csv", index=False)

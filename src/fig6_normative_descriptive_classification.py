@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 import matplotlib.colors as mcolors
 
+from paths import LABELS_DATA_DIR, FIGURES_DIR
+
 
 # Load the CSV file
-path2statementclass = "TBD"
-
-df = pd.read_csv(path2statementclass + "normative_descriptive_classification.csv")
+df = pd.read_csv(LABELS_DATA_DIR / "normative_descriptive_classification.csv")
 
 
 def classify_statement_subtype(row):
@@ -340,5 +340,4 @@ for sub in descriptive_subs:
 plt.tight_layout()
 
 # Save the figure
-path2save = "/Users/shirandudy/Documents/Documents_new/NEU/projects/FAccT_co-design_2025/results/figs/"
-plt.savefig(path2save + "statement_tree.pdf", bbox_inches="tight", facecolor="white")
+plt.savefig(FIGURES_DIR / "statement_tree.pdf", bbox_inches="tight", facecolor="white")

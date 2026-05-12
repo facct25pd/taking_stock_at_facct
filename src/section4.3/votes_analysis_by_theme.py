@@ -1,13 +1,11 @@
 import pandas as pd
 import os
 
+from paths import INTERIM_DIR, LABELS_DATA_DIR, OUT_DIR
+
 # Read both files
-majority_df = pd.read_csv(
-    "/Users/shirandudy/Documents/Documents_new/NEU/projects/FAccT_co-design_2025/results/src/togit/fig7/theme_classification.csv"
-)
-votes_df = pd.read_csv(
-    "/Users/shirandudy/Documents/Documents_new/NEU/projects/FAccT_co-design_2025/results/csv/comment-groups.csv"
-)
+majority_df = pd.read_csv(INTERIM_DIR / "theme_classification.csv")
+votes_df = pd.read_csv(LABELS_DATA_DIR / "comment-groups.csv")
 
 # Merge on comment-id
 merged_df = pd.merge(
@@ -72,9 +70,6 @@ print(f"Found {len(all_themes)} unique themes:")
 for theme in sorted(all_themes):
     print(f"  - {theme}")
 
-# Create output directory
-output_dir = "/Users/shirandudy/Documents/Documents_new/NEU/projects/FAccT_co-design_2025/results/src/togit/section_4.3/votes_by_themes"
-os.makedirs(output_dir, exist_ok=True)
 
 # Generate a CSV for each theme
 for theme in sorted(all_themes):
@@ -99,11 +94,11 @@ for theme in sorted(all_themes):
 
     # Create safe filename
     safe_filename = theme.replace(" ", "_").replace("&", "and").replace("/", "_")
-    filepath = os.path.join(output_dir, f"{safe_filename}.csv")
+    filepath = os.path.join(OUT_DIR, f"{safe_filename}.csv")
 
     # Save to CSV
     output_df.to_csv(filepath, index=False)
     print(f"\nCreated: {safe_filename}.csv ({len(output_df)} comments)")
     print(output_df[["comment-id", "interpretation"]].head(3).to_string(index=False))
 
-print(f"\n✓ All {len(all_themes)} themed CSV files saved to {output_dir}")
+print(f"\n✓ All {len(all_themes)} themed CSV files saved to {OUT_DIR}")

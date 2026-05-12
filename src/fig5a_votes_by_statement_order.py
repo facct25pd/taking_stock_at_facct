@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-path2comments = "TBD"
+from paths import POLIS_DATA_DIR, FIGURES_DIR, LABELS_DATA_DIR
 
 
 def parse_datetime(datetime_str):
@@ -17,8 +17,8 @@ def parse_datetime(datetime_str):
 
 
 # Read both CSV files
-comments_df = pd.read_csv(path2comments + "comments.csv")
-commentgroups_df = pd.read_csv(path2comments + "comment-groups.csv")
+comments_df = pd.read_csv(POLIS_DATA_DIR / "comments.csv")
+commentgroups_df = pd.read_csv(LABELS_DATA_DIR / "comment-groups.csv")
 
 # rm filtered comments
 comments_df = comments_df[comments_df["comment-id"] != 45]
@@ -85,8 +85,9 @@ plt.xticks(fontsize=30)
 plt.yticks(fontsize=30)
 plt.tight_layout()
 
-path2save = "TBD"
-plt.savefig(path2save + "statement_votes_by_submission_order.pdf", bbox_inches="tight")
+plt.savefig(
+    FIGURES_DIR / "statement_votes_by_submission_order.pdf", bbox_inches="tight"
+)
 plt.show()
 
 # Print summary statistics

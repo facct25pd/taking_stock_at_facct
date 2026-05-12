@@ -3,12 +3,13 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from paths import POLIS_DATA_DIR, FIGURES_DIR
+
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.serif"] = ["Times New Roman"]
 
 # Load data
-path2pvotes = "TBD"
-pvotes = pd.read_csv(path2pvotes + "participant-votes.csv")
+pvotes = pd.read_csv(POLIS_DATA_DIR / "participant-votes.csv")
 
 # rm filtered comments
 pvotes = pvotes.drop("45", axis=1)
@@ -80,8 +81,7 @@ ax.legend(loc="upper left", fontsize=15)
 ax.grid(axis="y", alpha=0.3)
 
 plt.tight_layout()
-path2save = "TBD"
-plt.savefig(path2save + "comment_makers.pdf", bbox_inches="tight")
+plt.savefig(FIGURES_DIR / "comment_makers.pdf", bbox_inches="tight")
 plt.show()
 
 # Print summary statistics

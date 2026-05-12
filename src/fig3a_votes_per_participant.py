@@ -3,12 +3,13 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from paths import POLIS_DATA_DIR, FIGURES_DIR
+
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.serif"] = ["Times New Roman"]
 
 # Load data
-path2votes = "TBD"
-votes_unflitered = pd.read_csv(path2votes + "votes.csv")
+votes_unflitered = pd.read_csv(POLIS_DATA_DIR / "votes.csv")
 
 colors = ["#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33"]
 colors = ["#0173B2", "#DE8F05", "#029E73", "#CC78BC"]
@@ -80,5 +81,4 @@ ax.legend(fontsize=15)
 plt.tight_layout()
 
 # Save
-path2save = "TBD"
-plt.savefig(path2save + "votes_per_voter.pdf", bbox_inches="tight")
+plt.savefig(FIGURES_DIR / "votes_per_voter.pdf", bbox_inches="tight")

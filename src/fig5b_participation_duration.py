@@ -5,12 +5,13 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 
+from paths import POLIS_DATA_DIR, FIGURES_DIR
+
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.serif"] = ["Times New Roman"]
 
 # Load the data
-path2votes = "TBD"
-df = pd.read_csv(path2votes + "votes.csv")
+df = pd.read_csv(POLIS_DATA_DIR / "votes.csv")
 
 # Convert timestamp to datetime
 df["vote_time"] = pd.to_datetime(df["timestamp"], unit="s")
@@ -152,5 +153,4 @@ ax.set_xlim(
 
 plt.tight_layout()
 
-path2save = "/Users/shirandudy/Documents/Documents_new/NEU/projects/FAccT_co-design_2025/results/figs/"
-plt.savefig(path2save + "voting_timeline.pdf", bbox_inches="tight")
+plt.savefig(FIGURES_DIR / "voting_timeline.pdf", bbox_inches="tight")
