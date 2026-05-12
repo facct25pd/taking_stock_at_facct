@@ -2,27 +2,28 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
-from pywaffle import Waffle
 from collections import Counter
 import seaborn as sns
 
 
 # Read the Majority column from the Excel file
-path2themes = TBD
-df = pd.read_csv(path2themes+'theme_classification.csv')
+path2themes = "TBD"
+df = pd.read_csv(path2themes + "theme_classification.csv")
 
 # Extract non-empty Majority values as raw_data
-raw_data = df['Majority'].dropna().tolist()
+raw_data = df["Majority"].dropna().tolist()
 raw_data = [item for item in raw_data if str(item).strip()]  # Remove empty strings
+
 
 # Parse the data and clean up inconsistencies
 def parse_labels(text):
-    text = text.replace(';', ',')
-    labels = [label.strip() for label in text.split(',') if label.strip()]
+    text = text.replace(";", ",")
+    labels = [label.strip() for label in text.split(",") if label.strip()]
     normalized = []
     for label in labels:
         normalized.append(label.title())
     return normalized
+
 
 # Convert to list of all themes
 memberships = [parse_labels(item) for item in raw_data]
@@ -50,10 +51,7 @@ for idx, (theme, count) in enumerate(sorted_themes[:total_plots]):  # Limit to 1
     subplot_idx = idx + 1
 
     # Create waffle plot in this subplot position
-    ax = fig.add_subplot(
-        n_rows, n_cols, subplot_idx,
-        aspect='equal'
-    )
+    ax = fig.add_subplot(n_rows, n_cols, subplot_idx, aspect="equal")
 
     # Calculate grid dimensions for waffle
     waffle_rows = 5
@@ -64,32 +62,41 @@ for idx, (theme, count) in enumerate(sorted_themes[:total_plots]):  # Limit to 1
     for i in range(count):
         row = i // waffle_cols
         col = i % waffle_cols
-        ax.add_patch(plt.Rectangle((col, waffle_rows - row - 1), 0.9, 0.9,
-                                   facecolor=colors[idx % len(colors)],
-                                   edgecolor='white', linewidth=2))
+        ax.add_patch(
+            plt.Rectangle(
+                (col, waffle_rows - row - 1),
+                0.9,
+                0.9,
+                facecolor=colors[idx % len(colors)],
+                edgecolor="white",
+                linewidth=2,
+            )
+        )
 
     # Set limits and remove axes
     ax.set_xlim(-0.5, waffle_cols + 0.5)
     ax.set_ylim(-0.5, waffle_rows + 0.5)
-    ax.set_aspect('equal')
-    ax.axis('off')
+    ax.set_aspect("equal")
+    ax.axis("off")
 
     # Add title
-    if '&' in theme:
-        a, b = theme.split('&')
-        theme = a+"&\n"+b
+    if "&" in theme:
+        a, b = theme.split("&")
+        theme = a + "&\n" + b
     if "Environmental Sustainability" in theme:
         theme = "Environmental\nSustainability"
     if "Industry Engagement" in theme:
         theme = "Industry\nEngagement"
     if count == 1:
-        ax.set_title(f'{theme}\n({count} statement)',
-            fontsize=20, fontweight='bold', pad=10)
+        ax.set_title(
+            f"{theme}\n({count} statement)", fontsize=20, fontweight="bold", pad=10
+        )
     else:
-        ax.set_title(f'{theme}\n({count} statements)',
-            fontsize=20, fontweight='bold', pad=10)
+        ax.set_title(
+            f"{theme}\n({count} statements)", fontsize=20, fontweight="bold", pad=10
+        )
 
 plt.tight_layout()
 
-path2save = TBD
-plt.savefig(path2save+'facct_themes.pdf', bbox_inches='tight')
+path2save = "TBD"
+plt.savefig(path2save + "facct_themes.pdf", bbox_inches="tight")
