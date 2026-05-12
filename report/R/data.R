@@ -50,7 +50,7 @@ load_comments <- function(
 
   # Download latest version from:
   # https://docs.google.com/spreadsheets/d/1CGdvpwiBB6PJXdEbRKLdgWhW1eU0i-FVhoJ7QuYSqzY/gviz/tq?tqx=out:csv&sheet=Sheet1
-  comments_labels <- read_csv(paste0(POLIS_DATA_DIR, "/comments_labels.csv")) |>
+  comments_labels <- read_csv(paste0(LABELS_DATA_DIR, "/comments_labels.csv")) |>
     janitor::clean_names() |>
     select(comment_id, all_of(label_columns)) |>
     mutate(
